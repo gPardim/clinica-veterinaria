@@ -2,34 +2,25 @@ package br.edu.pucgoias.ads1253.clinica.service;
 
 import br.edu.pucgoias.ads1253.clinica.model.Animal;
 import br.edu.pucgoias.ads1253.clinica.model.Tutor;
+import br.edu.pucgoias.ads1253.clinica.repository.AnimalRepository;
 import br.edu.pucgoias.ads1253.clinica.repository.TutorRepository;
 import br.edu.pucgoias.ads1253.clinica.service.exception.CpfDuplicadoException;
 import br.edu.pucgoias.ads1253.clinica.service.exception.RecursoNaoEncontradoException;
+import br.edu.pucgoias.ads1253.clinica.service.exception.TutorComAnimaisException;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * ETAPA 4 - Camada de servico.
- *
- * As duas primeiras operacoes estao implementadas como referencia.
- * Implemente as demais, mantendo as assinaturas e as regras de negocio
- * descritas no material da aula. Substitua cada lancamento de
- * UnsupportedOperationException pela implementacao correspondente.
- *
- * Observacao: declare tambem o AnimalRepository como dependencia do
- * construtor apos concluir a ETAPA 3.
- */
 @Service
 public class ClinicaService {
 
     private final TutorRepository tutorRepository;
+    private final AnimalRepository animalRepository;
 
-    public ClinicaService(TutorRepository tutorRepository) {
+    public ClinicaService(TutorRepository tutorRepository, AnimalRepository animalRepository) {
         this.tutorRepository = tutorRepository;
+        this.animalRepository = animalRepository;
     }
-
-    // --- Implementado como referencia ---------------------------------------
 
     @Transactional
     public Tutor cadastrarTutor(Tutor tutor) {
@@ -45,43 +36,51 @@ public class ClinicaService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Tutor", id));
     }
 
-    // --- A implementar ------------------------------------------------------
-
     @Transactional(readOnly = true)
     public List<Tutor> listarTutores() {
-        throw new UnsupportedOperationException("ETAPA 4: implementar");
+        return tutorRepository.findAll();
     }
 
-    /** Atualiza nome e telefone do tutor; identificador inexistente deve falhar. */
     @Transactional
     public Tutor atualizarTutor(Long id, String novoNome, String novoTelefone) {
-        throw new UnsupportedOperationException("ETAPA 4: implementar");
+        Tutor tutor = buscarTutor(id);
+        tutor.setNome(novoNome);
+        tutor.setTelefone(novoTelefone);
+        return tutorRepository.save(tutor);
     }
 
-    /** Remove o tutor apenas se nao houver animais vinculados. */
     @Transactional
     public void removerTutor(Long id) {
-        throw new UnsupportedOperationException("ETAPA 4: implementar");
+        Tutor tutor = buscarTutor(id);
+        long quantidadeDeAnimais = animalRepository.countByTutorId(id);
+        if (quantidadeDeAnimais > 0) {
+            throw new TutorComAnimaisException(id, quantidadeDeAnimais);
+        }
+        tutorRepository.delete(tutor);
     }
 
-    /** Cadastra o animal vinculando-o ao tutor informado. */
     @Transactional
     public Animal cadastrarAnimal(Long tutorId, Animal animal) {
-        throw new UnsupportedOperationException("ETAPA 4: implementar");
+        Tutor tutor = buscarTutor(tutorId);
+        animal.setTutor(tutor);
+        return animalRepository.save(animal);
     }
 
     @Transactional(readOnly = true)
     public List<Animal> listarAnimaisDoTutor(Long tutorId) {
-        throw new UnsupportedOperationException("ETAPA 4: implementar");
+        return animalRepository.findByTutorId(tutorId);
     }
 
     @Transactional(readOnly = true)
     public List<Animal> buscarAnimaisPorEspecie(String especie) {
-        throw new UnsupportedOperationException("ETAPA 4: implementar");
+        return animalRepository.findByEspecieIgnoreCase(especie);
     }
 
     @Transactional
     public void removerAnimal(Long animalId) {
-        throw new UnsupportedOperationException("ETAPA 4: implementar");
+        if (!animalRepository.existsById(animalId)) {
+            throw new RecursoNaoEncontradoException("Animal", animalId);
+        }
+        animalRepository.deleteById(animalId);
     }
 }

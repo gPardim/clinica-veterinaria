@@ -1,27 +1,34 @@
 package br.edu.pucgoias.ads1253.clinica.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 
-/**
- * ETAPA 2 - Mapeamento da entidade Animal.
- *
- * Utilize a classe Tutor como referencia e complete o mapeamento:
- *  - anote a classe como entidade da tabela "animal";
- *  - declare o identificador com geracao automatica pelo banco;
- *  - mapeie nome (obrigatorio, 60), especie (obrigatoria, 40) e dataNascimento;
- *  - mapeie o lado "muitos" do relacionamento com Tutor, usando a coluna
- *    tutor_id como chave estrangeira e carregamento preguicoso (LAZY).
- */
+@Entity
+@Table(name = "animal")
 public class Animal {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 60)
     private String nome;
 
+    @Column(nullable = false, length = 40)
     private String especie;
 
     private LocalDate dataNascimento;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "tutor_id", nullable = false)
     private Tutor tutor;
 
     protected Animal() {

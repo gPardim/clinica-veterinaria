@@ -52,11 +52,15 @@ public class ClinicaService {
     @Transactional
     public void removerTutor(Long id) {
         Tutor tutor = buscarTutor(id);
-        long quantidadeDeAnimais = animalRepository.countByTutorId(id);
-        if (quantidadeDeAnimais > 0) {
-            throw new TutorComAnimaisException(id, quantidadeDeAnimais);
-        }
+        garantirTutorSemAnimaisVinculados(tutor);
         tutorRepository.delete(tutor);
+    }
+
+    private void garantirTutorSemAnimaisVinculados(Tutor tutor) {
+        long quantidadeDeAnimais = animalRepository.countByTutorId(tutor.getId());
+        if (quantidadeDeAnimais > 0) {
+            throw new TutorComAnimaisException(tutor.getId(), quantidadeDeAnimais);
+        }
     }
 
     @Transactional
